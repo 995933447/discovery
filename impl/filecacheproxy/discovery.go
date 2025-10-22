@@ -30,6 +30,7 @@ type Discovery struct {
 	srvMap             map[string]*discovery.Service
 	onSrvUpdate        discovery.OnSrvUpdatedFunc
 	unwatchCh          chan struct{}
+	unwatchWg          sync.WaitGroup
 	isWatched          bool
 	logErrorFunc       func(any)
 	isMaster           bool
@@ -273,6 +274,7 @@ func (d *Discovery) watch() error {
 				d.isWatched = false
 				d.mu.Unlock()
 
+				d.unwatchWg.Done()
 				return
 			case <-syncSrvTk.C:
 				var mapSrvToUpdatedAtCp sync.Map
@@ -386,7 +388,9 @@ func (d *Discovery) watch() error {
 }
 
 func (d *Discovery) Unwatch() {
+	d.unwatchWg.Add(1)
 	d.unwatchCh <- struct{}{}
+	d.unwatchWg.Wait()
 }
 
 func (d *Discovery) getSrvFilePath(srvName string) string {
