@@ -274,6 +274,10 @@ func (d *Discovery) watch() error {
 				d.isWatched = false
 				d.mu.Unlock()
 
+				if d.isMaster {
+					d.conn.Unwatch()
+				}
+
 				d.unwatchWg.Done()
 				return
 			case <-syncSrvTk.C:
@@ -564,10 +568,10 @@ type Options struct {
 
 func NewDiscovery(opts *Options) (discovery.Discovery, error) {
 	dis := &Discovery{
-		dir:    opts.Dir,
-		conn:   opts.Discovery,
-		srvMap: map[string]*discovery.Service{},
-
+		dir:          opts.Dir,
+		conn:         opts.Discovery,
+		srvMap:       map[string]*discovery.Service{},
+		unwatchCh:    make(chan struct{}),
 		logErrorFunc: opts.LogErrFunc,
 	}
 
