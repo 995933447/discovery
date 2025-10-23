@@ -21,24 +21,25 @@ func RegisterDefaultDiscovery(discovery discovery.Discovery) {
 	discoveries.Store(DefaultDiscoveryName, discovery)
 }
 
-func GetDiscovery(name string) (discovery.Discovery, bool) {
+func GetDiscovery(name string) (discovery.Discovery, error) {
 	dis, ok := discoveries.Load(name)
 	if !ok {
-		return nil, false
+		return nil, ErrDiscoveryNotFound
 	}
-	return dis.(discovery.Discovery), ok
+	return dis.(discovery.Discovery), nil
 }
 
-func GetDefaultDiscovery() (discovery.Discovery, bool) {
+func GetDefaultDiscovery() (discovery.Discovery, error) {
 	return GetDiscovery(DefaultDiscoveryName)
 }
 
 func MustGetDiscovery(name string) discovery.Discovery {
-	if dis, ok := GetDiscovery(name); ok {
-		return dis
+	dis, err := GetDiscovery(name)
+	if err != nil {
+		panic(err)
 	}
 
-	panic(ErrDiscoveryNotFound)
+	return dis
 }
 
 func MustGetDefaultDiscovery() discovery.Discovery {
