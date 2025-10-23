@@ -470,20 +470,21 @@ func (d *Discovery) LogError(err any) {
 var _ discovery.Discovery = (*Discovery)(nil)
 
 type Options struct {
-	DiscoverKeyPrefix string `json:"discovery_key_prefix"`
+	DiscoverKeyPrefix string
 	Etcd              *clientv3.Config
 	DiscoverTimeout   time.Duration
 	LogErrorFunc      func(any)
 }
 
 func NewDiscovery(opts *Options) (discovery.Discovery, error) {
+	discoveryTimeout := opts.DiscoverTimeout
 	if opts.DiscoverTimeout == 0 {
-		opts.DiscoverTimeout = time.Second * 5
+		discoveryTimeout = time.Second * 5
 	}
 
 	dis := &Discovery{
 		KeyPrefix:    opts.DiscoverKeyPrefix,
-		timeout:      opts.DiscoverTimeout,
+		timeout:      discoveryTimeout,
 		srvMap:       map[string]*Service{},
 		unwatchCh:    make(chan struct{}),
 		logErrorFunc: opts.LogErrorFunc,
