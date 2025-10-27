@@ -5,8 +5,11 @@ import (
 	"fmt"
 
 	"github.com/995933447/discovery"
+	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
+
+const StateAddressAttributeKeyExtra = "extra"
 
 func NewResolver(srvName string, cc resolver.ClientConn, builder *Builder) *Resolver {
 	return &Resolver{
@@ -46,7 +49,8 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 			continue
 		}
 		state.Addresses = append(state.Addresses, resolver.Address{
-			Addr: fmt.Sprintf("%s:%d", node.Host, node.Port),
+			Addr:       fmt.Sprintf("%s:%d", node.Host, node.Port),
+			Attributes: attributes.New(StateAddressAttributeKeyExtra, node.Extra),
 		})
 	}
 
