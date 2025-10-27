@@ -63,9 +63,6 @@ func (d *Discovery) Discover(ctx context.Context, srvName string) (*discovery.Se
 
 func (d *Discovery) OnSrvUpdated(updatedFunc discovery.OnSrvUpdatedFunc) {
 	d.mainDiscovery.OnSrvUpdated(updatedFunc)
-	for _, dis := range d.otherDiscoveries {
-		dis.OnSrvUpdated(updatedFunc)
-	}
 }
 
 func (d *Discovery) Unwatch() {
