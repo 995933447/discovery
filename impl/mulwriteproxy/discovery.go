@@ -7,8 +7,9 @@ import (
 )
 
 type Discovery struct {
-	mainDiscovery    discovery.Discovery
-	otherDiscoveries []discovery.Discovery
+	mainDiscovery                      discovery.Discovery
+	otherDiscoveries                   []discovery.Discovery
+	enabledMulRegisterOnSrvUpdatedFunc bool
 }
 
 func (d *Discovery) LoadAll(ctx context.Context) ([]*discovery.Service, error) {
@@ -63,6 +64,11 @@ func (d *Discovery) Discover(ctx context.Context, srvName string) (*discovery.Se
 
 func (d *Discovery) OnSrvUpdated(updatedFunc discovery.OnSrvUpdatedFunc) {
 	d.mainDiscovery.OnSrvUpdated(updatedFunc)
+	if d.enabledMulRegisterOnSrvUpdatedFunc {
+		for _, dis := range d.otherDiscoveries {
+			dis.OnSrvUpdated(updatedFunc)
+		}
+	}
 }
 
 func (d *Discovery) Unwatch() {
@@ -75,13 +81,15 @@ func (d *Discovery) Unwatch() {
 var _ discovery.Discovery = (*Discovery)(nil)
 
 type Options struct {
-	MainDiscovery    discovery.Discovery
-	OtherDiscoveries []discovery.Discovery
+	MainDiscovery                      discovery.Discovery
+	OtherDiscoveries                   []discovery.Discovery
+	EnabledMulRegisterOnSrvUpdatedFunc bool
 }
 
 func NewDiscovery(opts *Options) *Discovery {
 	return &Discovery{
-		mainDiscovery:    opts.MainDiscovery,
-		otherDiscoveries: opts.OtherDiscoveries,
+		mainDiscovery:                      opts.MainDiscovery,
+		otherDiscoveries:                   opts.OtherDiscoveries,
+		enabledMulRegisterOnSrvUpdatedFunc: opts.EnabledMulRegisterOnSrvUpdatedFunc,
 	}
 }
