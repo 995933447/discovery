@@ -49,7 +49,6 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 			Addr: fmt.Sprintf("%s:%d", node.Host, node.Port),
 		})
 	}
-	state.ServiceConfig = r.cc.ParseServiceConfig(`{"loadBalancingPolicy":"round_robin"}`)
 
 	if err := r.cc.UpdateState(state); err != nil {
 		r.LogError(err)
