@@ -9,7 +9,16 @@ import (
 	"google.golang.org/grpc/resolver"
 )
 
-const StateAddressAttributeKeyExtra = "extra"
+const (
+	StateAddressAttributeKeyNil       = ""
+	StateAddressAttributeKeyHost      = "host"
+	StateAddressAttributeKeyPort      = "port"
+	StateAddressAttributeKeyExtra     = "extra"
+	StateAddressAttributeKeyStatus    = "status"
+	StateAddressAttributeKeyPriority  = "priority"
+	StateAddressAttributeKeyName      = "name"
+	StateAddressAttributeKeySlaveFlag = "slave_flag"
+)
 
 func NewResolver(srvName string, cc resolver.ClientConn, builder *Builder) *Resolver {
 	return &Resolver{
@@ -48,9 +57,17 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 		if !node.Available() {
 			continue
 		}
+		
+		attrs := attributes.New(StateAddressAttributeKeyExtra, node.Extra)
+		attrs.WithValue(StateAddressAttributeKeyStatus, node.Status)
+		attrs.WithValue(StateAddressAttributeKeyPriority, node.Priority)
+		attrs.WithValue(StateAddressAttributeKeyName, node.Name)
+		attrs.WithValue(StateAddressAttributeKeyHost, node.Host)
+		attrs.WithValue(StateAddressAttributeKeyPort, node.Port)
+		attrs.WithValue(StateAddressAttributeKeySlaveFlag, node.SlaveFlag)
 		state.Addresses = append(state.Addresses, resolver.Address{
 			Addr:       fmt.Sprintf("%s:%d", node.Host, node.Port),
-			Attributes: attributes.New(StateAddressAttributeKeyExtra, node.Extra),
+			Attributes: attrs,
 		})
 	}
 
