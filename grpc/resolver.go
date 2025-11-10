@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/995933447/discovery"
+	"github.com/995933447/runtimeutil"
 	"google.golang.org/grpc/attributes"
 	"google.golang.org/grpc/resolver"
 )
@@ -37,7 +38,7 @@ type Resolver struct {
 func (r *Resolver) ResolveNow(options resolver.ResolveNowOptions) {
 	srv, err := r.Builder.dis.Discover(context.Background(), r.srvName)
 	if err != nil {
-		r.LogError(err)
+		r.LogError(runtimeutil.NewStackErr(err))
 		return
 	}
 	r.UpdateSrvCfg(srv)
@@ -57,7 +58,7 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 		if !node.Available() {
 			continue
 		}
-		
+
 		attrs := attributes.New(StateAddressAttributeKeyExtra, node.Extra)
 		attrs.WithValue(StateAddressAttributeKeyStatus, node.Status)
 		attrs.WithValue(StateAddressAttributeKeyPriority, node.Priority)
@@ -72,7 +73,7 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 	}
 
 	if err := r.cc.UpdateState(state); err != nil {
-		r.LogError(err)
+		r.LogError(runtimeutil.NewStackErr(err))
 	}
 }
 
