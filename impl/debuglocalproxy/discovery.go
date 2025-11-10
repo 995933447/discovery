@@ -116,7 +116,11 @@ func (d *Discovery) registerLocalFile(srvName string, node *discovery.Node) erro
 }
 
 func (d *Discovery) unregisterLocalFile(srvName string) error {
-	return os.Remove(d.getSrvFilePath(srvName))
+	err := os.Remove(d.getSrvFilePath(srvName))
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }
 
 var _ discovery.Discovery = (*Discovery)(nil)
