@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/995933447/discovery"
@@ -74,10 +75,11 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 
 	// 这里要使用ReportError，不能更新地址为空，如果更新地址为空，下次请求，grpc不会重新调用ResolveNow更新地址
 	// ReportError会把错误返回应用层调用grpc的错误，以及grpc会指数级重试调用ResolveNow(最大间隔2分钟)，直到没有ReportError
-	//if len(state.Addresses) == 0 {
-	//	r.cc.ReportError(errors.New("empty address of " + r.srvName))
-	//	return
-	//}
+	// 虽然节点起来以后有事件通知更新节点信息，这里可以做双重兜底
+	if len(state.Addresses) == 0 {
+		r.cc.ReportError(errors.New("empty address of " + r.srvName))
+		return
+	}
 
 	if err := r.cc.UpdateState(state); err != nil {
 		r.LogError(runtimeutil.NewStackErr(err))
