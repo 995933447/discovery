@@ -25,6 +25,7 @@ type Discovery struct {
 	srvMap       map[string]*Service
 	mu           sync.RWMutex
 	onSrvUpdate  discovery.OnSrvUpdatedFunc
+	onSrvUpdates []discovery.OnSrvUpdatedFunc
 	unwatchCh    chan struct{}
 	unwatchWg    sync.WaitGroup
 	KeyPrefix    string
@@ -298,7 +299,14 @@ func (d *Discovery) Discover(ctx context.Context, srvName string) (*discovery.Se
 }
 
 func (d *Discovery) OnSrvUpdated(fn discovery.OnSrvUpdatedFunc) {
-	d.onSrvUpdate = fn
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.onSrvUpdates = append(d.onSrvUpdates, fn)
+	d.onSrvUpdate = func(ctx context.Context, evt discovery.Evt, srv *discovery.Service) {
+		for _, f := range d.onSrvUpdates {
+			f(ctx, evt, srv)
+		}
+	}
 }
 
 func (d *Discovery) tryAddTimeoutToCtx(ctx context.Context) (triedCtx context.Context, cancel context.CancelFunc, hasCancel bool) {
