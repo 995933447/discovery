@@ -181,7 +181,7 @@ func (d *Discovery) watch(startRevision int64) {
 					continue
 				}
 
-				srvName := key[len(d.KeyPrefix):]
+				srvName := key[len(d.KeyPrefix)+1:]
 
 				d.mu.RLock()
 				srv, ok := d.srvMap[srvName]
@@ -339,7 +339,7 @@ func (d *Discovery) LoadAll(ctx context.Context) ([]*discovery.Service, error) {
 			continue
 		}
 
-		srvName := key[len(d.KeyPrefix):]
+		srvName := key[len(d.KeyPrefix)+1:]
 
 		srv := &discovery.Service{}
 		err = json.Unmarshal(kv.Value, srv)
