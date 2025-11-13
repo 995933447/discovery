@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/995933447/discovery"
@@ -38,7 +39,7 @@ type Resolver struct {
 func (r *Resolver) ResolveNow(options resolver.ResolveNowOptions) {
 	srv, err := r.Builder.dis.Discover(context.Background(), r.srvName)
 	if err != nil {
-		r.LogError(runtimeutil.NewStackErr(err))
+		r.LogError(runtimeutil.NewStackErr(fmt.Errorf("discover service %s error:%v", r.srvName, err)))
 		return
 	}
 	r.UpdateSrvCfg(srv)
@@ -70,6 +71,11 @@ func (r *Resolver) UpdateSrvCfg(srv *discovery.Service) {
 			Addr:       fmt.Sprintf("%s:%d", node.Host, node.Port),
 			Attributes: attrs,
 		})
+	}
+
+	if len(state.Addresses) == 0 {
+		r.cc.ReportError(errors.New("empty address of " + r.srvName))
+		return
 	}
 
 	if err := r.cc.UpdateState(state); err != nil {
